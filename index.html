@@ -247,6 +247,22 @@ body{background-image:radial-gradient(60vmax 60vmax at 0% 0%,color-mix(in srgb,#
 
 body.op{overflow:hidden}
 @media(max-width:800px){#sh{touch-action:none}}
+
+.md,.nwl,.opts,.sbs{overscroll-behavior:contain}
+@media(max-width:800px){#main{padding-bottom:calc(110px + env(safe-area-inset-bottom))}}
+@media(max-width:560px){
+ #main{padding-left:10px;padding-right:10px}
+ .c{padding:12px;border-radius:18px;margin-bottom:10px}.c h3{font-size:11px;margin-bottom:6px}
+ .big{font-size:22px}.hero .big{font-size:28px}.sc2 .big{font-size:20px}
+ .g4{grid-template-columns:1fr 1fr;gap:10px}.sp2{display:none}
+ .sc2 .sh{margin-bottom:4px}.sc2 .sh b{font-size:12px}.mi{width:26px;height:26px}.sc2 .m,.sc2 .up,.sc2 .dn{font-size:11px}
+ .ph{gap:10px;margin-bottom:12px}.phi{width:44px;height:44px;border-radius:14px}.phi svg{width:22px;height:22px}.pht{min-width:0}.pht h1{font-size:24px}.pht p{font-size:12px}
+ .pha{width:100%;flex-wrap:nowrap;gap:8px}.pha .bt.out{flex:1;padding:9px 6px;font-size:12px;min-height:38px;justify-content:center}.pha .bt.out svg{display:none}
+ .tiles{gap:8px}.tile{padding:10px;border-radius:16px}.tile .ti{width:34px;height:34px}.tile small{display:none}
+ .r2{padding:8px 0}.ci2{width:36px;height:36px}.cols2,.cols3{gap:10px;margin-bottom:10px}
+ .hero{padding:14px;border-radius:20px}.hico{width:64px;height:64px;font-size:34px}.wt{font-size:26px}
+ .lk:after{font-size:18px;right:10px;top:6px}
+}
 </style></head><body>
 <div id="sh" onclick="sbOpen(false)"></div>
 <nav id="sb" aria-label="Navigazione"></nav>
@@ -256,10 +272,12 @@ body.op{overflow:hidden}
 <script>
 "use strict";
 /* ===== CONFIG & DATI ===== */
-const K='mendohub_v1';
+const K='mendohub_v1',VER='2026-10-20 · build 14';
 const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
 const CATS=['Cibo','Bere','Fumo','Uscite e divertimento','Vestiti e shopping','Trasporti','Palestra e sport','Abbonamenti e servizi','Regali','Scuola','Altro'];
 const def=()=>({v:1,profile:{},set:{theme:'dark',anim:true,reserve:20,gym:3,gymMin:70,resOn:false,scheme:60,psec:['info','stats','rec','abit','ach','goals','hist'],phide:[]},init:null,tx:[],cats:CATS.map(n=>({id:uid(),name:n,budget:0,w:1})),debts:[],tasks:[],tests:[],goals:[],sess:[],timer:null,xp:0,ach:{},read:{},backups:0,achv:3,prof:[],exc:[]});
+let STORE_OK=true;try{localStorage.setItem('mh_t','1');localStorage.removeItem('mh_t')}catch(e){STORE_OK=false}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 let db=load(),cur='home',F={type:'',cat:'',w:'',m:''};
 function rd(){try{const v=localStorage.getItem(K);if(v)return v}catch(e){}try{return JSON.parse(window.name).mh||null}catch(e){return null}}
 function load(){let r=null;try{r=rd();const d=JSON.parse(r);if(d&&d.v===1){const x=Object.assign(def(),d);x.set=Object.assign(def().set,d.set||{});return mig(x)}}catch(e){console.error(e);try{if(r)localStorage.setItem(K+'_corrupt',r)}catch(e2){}}return def()}
@@ -392,7 +410,7 @@ function showNew(L){let ov=document.getElementById('newov');if(!ov){ov=document.
  const l=ov.querySelector('.nwl');L.forEach(x=>l.insertAdjacentHTML('beforeend',`<div class="nwi"><span class="nwt">🏅</span><div><b>${esc(x.l)}</b><small>${esc(x.t)} · ${esc(x.d)}</small></div><span class="bd g">+${x.xp} XP</span></div>`));
  const n=l.children.length;ov.querySelector('.nwc').textContent='Hai sbloccato '+n+(n===1?' nuovo obiettivo':' nuovi obiettivi')+'. Continua così!'}
 /* ===== MOTORE: commit ===== */
-function commit(){replan();checkAch();save();render()}
+function commit(){try{replan()}catch(e){console.error(e)}try{checkAch()}catch(e){console.error(e)}save();render()}
 /* ===== UI: modali, selettori e calendario (senza <form>: funziona anche in anteprime sandbox) ===== */
 const cl=o=>{o.classList.add('out');setTimeout(()=>o.remove(),180)},pad=n=>String(n).padStart(2,'0');
 const tpHTML=v=>{const[h,m]=(v||'08:00').split(':');return`<div class="lb">Ora</div><div class="tg">${[...Array(24).keys()].map(i=>`<button type="button" class="cd2${pad(i)===h?' on':''}" data-h="${pad(i)}">${pad(i)}</button>`).join('')}</div><div class="lb">Minuti</div><div class="tg">${[...Array(12).keys()].map(i=>`<button type="button" class="cd2${pad(i*5)===m?' on':''}" data-mi="${pad(i*5)}">${pad(i*5)}</button>`).join('')}</div><div class="row" style="margin-top:10px"><button type="button" class="sg" data-ms="-1">−1 min</button><button type="button" class="sg" data-ms="1">+1 min</button><button type="button" class="sg" data-tc>Azzera</button><button type="button" class="sg" data-td>Fatto</button></div>`};
@@ -541,7 +559,7 @@ V.plan=()=>{const T=today(),days=[...Array(7)].map((_,i)=>addD(T,i)),fix=db.task
  (fix.length?C(`<h3>Richiedono una decisione</h3>${fix.map(taskRow).join('')}`):'')+
  days.map(d=>{const L=db.tasks.filter(t=>(t.planDay===d||(t.fixed&&t.date===d))&&t.status!=='Annullata'),ld=L.filter(t=>t.status!=='Completata').reduce((a,t)=>a+t.dur,0);
  return C(`<div class="row sp"><h3 style="margin:0">${pd(d).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'short'})}${d===T?' · oggi':''}</h3><span class="m">${ld}/${capFor(d)} min</span></div><p class="m" style="font-size:12px;margin:0">🕘 ${esc(dayBusy(d).l)}</p>${bar(ld/capFor(d)*100,'r')}${L.map(taskRow).join('')||empty('Libero.')}`)}).join('')};
-V.study=()=>C(`<button class="bt" data-a="stnew">+ Verifica / interrogazione</button><p class="m">Per le materie di teoria ogni argomento genera schema (${db.set.scheme} min), studio e ripasso; per quelle pratiche (matematica, informatica…) genera esercizi e ripasso. Le durate sono stime e modificabili dall'Agenda.</p>`)+
+V.study=()=>C(`<button class="bt" data-a="stnew">+ Verifica, interrogazione o compito</button><p class="m">Per le materie di teoria ogni argomento genera schema (${db.set.scheme} min), studio e ripasso; per quelle pratiche (matematica, informatica…) genera esercizi e ripasso. Le durate sono stime e modificabili dall'Agenda.</p>`)+
  (db.tests.map(t=>C(`<div class="row sp"><div><b>${esc(t.title)}</b> <span class="bd">${esc(t.subject)}</span><div class="m">${fd(t.date)} · tra ${diff(t.date,today())} giorni</div></div><button class="bt sm g2" data-a="stdel" data-i="${t.id}">Elimina</button></div>${t.topics.map(p=>{const tm=db.tasks.filter(x=>x.topic===p.id).reduce((a,x)=>a+(x.spent||0),0);return`<div class="it"><div><b>${esc(p.name)}</b>${p.pages?` <span class="m">${p.pages} pag.</span>`:''}<div class="m" style="font-size:12px">Tempo: ${fT(tm)}</div></div><div class="row"><span class="bd">${p.kind==='p'?'Pratica':'Teoria'}</span>${p.kind==='p'?'':`<button class="bt sm ${p.schema==='Completato'?'':'g2'}" data-a="tsc" data-i="${t.id}" data-j="${p.id}">Schema: ${p.schema}</button>`}<button class="bt sm ${p.study==='Studiato'?'':'g2'}" data-a="tst" data-i="${t.id}" data-j="${p.id}">${p.kind==='p'?{'Non studiato':'Esercizi da fare','Parzialmente':'Esercizi in corso','Studiato':'Esercizi fatti','Da ripassare':'Da rivedere'}[p.study]:p.study}</button></div></div>`}).join('')}`)).join('')||C(empty('Nessuna verifica. Creane una per generare il piano di studio.')));
 let TSEL='',TDUR=60,SF='all',SD='';const sessList=()=>{const T=today(),r={all:null,today:[T,T],week:rangeOf('week',0),month:rangeOf('month',0),day:SD?[SD,SD]:null}[SF];return[...db.sess].sort((a,b)=>b.start-a.start).filter(x=>{if(!r)return true;const d=ymd(new Date(x.start));return d>=r[0]&&d<=r[1]})};
 V.timer=()=>{const t=db.timer,o=db.tasks.filter(x=>!['Completata','Annullata'].includes(x.status)&&x.dur>0);
@@ -585,7 +603,7 @@ V.sched=()=>{const T=today(),days=[...Array(7)].map((_,i)=>addD(T,i));
  C(`<h3>Prossimi 7 giorni</h3>${days.map(d=>{const b=dayBusy(d);return`<div class="it"><span>${pd(d).toLocaleDateString('it-IT',{weekday:'short',day:'numeric'})}</span><span class="m">${esc(b.l)}</span><span class="bd">max ${capFor(d)} min studio</span></div>`}).join('')}`)};
 V.set=()=>C(`<h3>Aspetto</h3><div class="row"><button class="bt g2" data-a="theme">${db.set.theme==='dark'?'☀️ Tema chiaro':'🌙 Tema scuro'}</button><button class="bt g2" data-a="anim">Animazioni: ${db.set.anim?'attive':'ridotte'}</button></div>`)+
  C(`<h3>Preferenze</h3><button class="bt g2" data-a="pref">Riserva minima, palestra, durata schema</button><p class="m">Riserva ${eur(db.set.reserve)} · Palestra ${db.set.gym}/sett. da ${db.set.gymMin} min · Schema ${db.set.scheme} min · Max ${db.set.maxSame||90} min per materia al giorno</p>`)+
- C(`<h3>Dati (salvati solo su questo browser)</h3><p class="m">Il trasferimento tra dispositivi è manuale: esporta il JSON e importalo sull'altro dispositivo (AirDrop, iCloud Drive…). Le modifiche non si sincronizzano da sole.</p><div class="row"><button class="bt" data-a="exp">Esporta JSON</button><button class="bt g2" data-a="csv">Esporta CSV</button><button class="bt g2" data-a="imp">Importa backup</button><button class="bt rd" data-a="wipe">Cancella tutto</button></div>`);
+ C(`<h3>Dati (salvati solo su questo browser)</h3><p class="m" style="font-size:12px">Versione del sito: ${VER}</p><p class="m">Il trasferimento tra dispositivi è manuale: esporta il JSON e importalo sull'altro dispositivo (AirDrop, iCloud Drive…). Le modifiche non si sincronizzano da sole.</p><div class="row"><button class="bt" data-a="exp">Esporta JSON</button><button class="bt g2" data-a="csv">Esporta CSV</button><button class="bt g2" data-a="imp">Importa backup</button><button class="bt rd" data-a="wipe">Cancella tutto</button></div>`);
 /* ===== AZIONI ===== */
 const A={};
 A.nav=v=>{cur=v;db.set.cur=v;save();$('#sb').querySelectorAll('.nv[data-i]').forEach(b=>b.classList.toggle('on',b.dataset.i===v));const go=()=>{render(true);scrollTo(0,0)};if(document.body.classList.contains('op')){sbOpen(false);setTimeout(go,230)}else go()};
@@ -615,7 +633,9 @@ A.ddel=id=>ask('Eliminare la posizione e i movimenti collegati?',()=>{db.tx=db.t
 const tfs=t=>[{k:'title',l:'Titolo',v:t.title},{k:'type',l:'Tipo',t:'select',o:TYP.map(x=>[x,x]),v:t.type},{k:'date',l:'Scadenza',t:'date',v:t.date},{k:'time',l:'Ora (facoltativa)',t:'time',v:t.time},{k:'dur',l:'Durata stimata (min)',t:'num',v:t.dur||60},{k:'prio',l:'Priorità',t:'select',o:[[1,'Bassa'],[2,'Media'],[3,'Alta']],v:t.prio||2},{k:'fixed',l:'Impegno fisso (rispetta data e ora)',t:'select',o:[['0','No, flessibile'],['1','Sì']],v:t.fixed?'1':'0'},{k:'notes',l:'Note',v:t.notes}];
 function tsave(t,o){const d=num(o.dur);if(!o.title.trim())return'Titolo mancante';if(!(d>0))return'Durata non valida';
  Object.assign(t,{title:o.title.trim(),type:o.type,date:o.date,time:o.time,dur:d,prio:+o.prio,fixed:o.fixed==='1'&&!!o.date,notes:o.notes});if(t.fixed){t.planDay=t.date;t.status='Pianificata'}return commit()}
-A.tnew=()=>form('Nuova attività',tfs({}).concat([{k:'st',l:'Stato',t:'select',o:[['0','Da fare'],['1','Già fatta']],v:'0'}]),o=>{const t={id:uid(),status:'Da pianificare',spent:0};db.tasks.push(t);const e=tsave(t,o);if(e){db.tasks.pop();return e}if(o.st==='1')A.tdone(t.id)},'Crea');
+const STY=['Verifica','Interrogazione','Compito'];
+A.tnew=()=>sheet('Che attività vuoi aggiungere?',TYP.map(x=>[x,x]),'',t=>STY.includes(t)?A.stnew(t):A.tnew2(t));
+A.tnew2=type=>form('Nuova attività · '+type,tfs({type}).concat([{k:'st',l:'Stato',t:'select',o:[['0','Da fare'],['1','Già fatta']],v:'0'}]),o=>{if(STY.includes(o.type)){setTimeout(()=>A.stnew(o.type,{title:o.title,date:o.date}),0);return}const t={id:uid(),status:'Da pianificare',spent:0};db.tasks.push(t);const e=tsave(t,o);if(e){db.tasks.pop();return e}if(o.st==='1')A.tdone(t.id)},'Crea');
 A.tedit=id=>{const t=db.tasks.find(x=>x.id===id);form('Modifica attività',tfs(t),o=>tsave(t,o))};
 const finish=(t,day)=>{t.status='Completata';t.done=day||today();if(!t.xpd){t.xpd=1;db.xp+=5}
  db.tests.forEach(s=>s.topics.forEach(p=>{if(p.id===t.topic){if(t.kind==='schema')p.schema='Completato';if(t.kind==='study'||t.kind==='practice')p.study='Studiato'}}));burst(12);commit()};
@@ -627,17 +647,18 @@ A.tdone=id=>{const t=db.tasks.find(x=>x.id===id);if((t.fixed||['Verifica','Inter
   db.sess.push({id:uid(),task:t.id,label:t.title,subject:t.subject||'',type:t.type,start:a,end:b,secs,planned:t.dur*60,over:Math.max(0,secs-t.dur*60),manual:true});t.spent=(t.spent||0)+secs;finish(t,o.d)},'Segna completata')};
 A.tpost=id=>{const t=db.tasks.find(x=>x.id===id);t.status='Rimandata';if(!t.fixed)t.planDay=null;commit();toast('Rimandata: tornerà nel piano')};
 A.tdel=id=>ask('Eliminare questa attività?',()=>{db.tasks=db.tasks.filter(t=>t.id!==id);commit()});
-A.stnew=()=>form('Verifica o interrogazione',[{k:'subject',l:'Materia'},{k:'title',l:'Titolo'},{k:'date',l:'Data',t:'date'},{k:'mode',l:'Tipo di preparazione',t:'select',o:[['auto','Come ultima volta'],['t','Teoria: schemi'],['p','Pratica: esercizi']],v:'auto'},{k:'topics',l:'Argomenti (uno per riga: nome | pagine). «| es» = esercizi, «| teoria» = teoria',t:'area',p:'Equazioni | es\nRivoluzione francese | 12 | teoria'}],o=>{
+A.stnew=(type,pre)=>{if(!STY.includes(type))return sheet('Che cosa devi preparare?',STY.map(x=>[x,x]),'',t=>A.stnew(t));pre=pre&&typeof pre==='object'?pre:{};
+ form('Nuova '+type.toLowerCase(),[{k:'subject',l:'Materia'},{k:'title',l:'Titolo',v:pre.title||type},{k:'date',l:type==='Compito'?'Da consegnare entro':'Data',t:'date',v:pre.date},{k:'mode',l:'Tipo di preparazione',t:'select',o:[['auto','Come ultima volta'],['t','Teoria: schemi'],['p','Pratica: esercizi']],v:'auto'},{k:'topics',l:'Argomenti (uno per riga: nome | pagine). «| es» = esercizi, «| teoria» = teoria',t:'area',p:'Equazioni | es\nRivoluzione francese | 12 | teoria'}],o=>{
  const sub=o.subject.trim(),key=sub.toLowerCase();if(!sub||!o.title.trim())return'Materia e titolo obbligatori';if(!o.date)return'Inserisci la data';
  const lines=o.topics.split('\n').map(x=>x.trim()).filter(Boolean);if(!lines.length)return'Inserisci almeno un argomento';
- db.subj=db.subj||{};const dm=o.mode==='auto'?(db.subj[key]||'t'):o.mode;if(o.mode!=='auto')db.subj[key]=o.mode;
- const test={id:uid(),subject:sub,title:o.title.trim(),date:o.date,topics:[]},mk=t=>db.tasks.push(Object.assign({id:uid(),status:'Da pianificare',spent:0,subject:sub,test:test.id,prio:3},t));
- mk({title:test.title,type:'Verifica',date:o.date,dur:0,fixed:true,planDay:o.date,status:'Pianificata'});
+ db.subj=db.subj||{};const dm=o.mode==='auto'?(db.subj[key]||(type==='Compito'?'p':'t')):o.mode;if(o.mode!=='auto')db.subj[key]=o.mode;
+ const test={id:uid(),type,subject:sub,title:o.title.trim(),date:o.date,topics:[]},mk=t=>db.tasks.push(Object.assign({id:uid(),status:'Da pianificare',spent:0,subject:sub,test:test.id,prio:3},t));
+ if(type!=='Compito')mk({title:test.title,type,date:o.date,dur:0,fixed:true,planDay:o.date,status:'Pianificata'});
  lines.forEach(l=>{const pt=l.split('|').map(x=>x.trim()),n=pt[0],fl=pt.slice(1).map(x=>x.toLowerCase()),pages=parseInt(pt.slice(1).find(x=>/^\d+$/.test(x)))||0,kind=fl.some(x=>['es','esercizi','pratica','p'].includes(x))?'p':fl.some(x=>['teoria','t'].includes(x))?'t':dm,p={id:uid(),name:n,pages,kind,schema:kind==='p'?'N/A':'Non fatto',study:'Non studiato'};test.topics.push(p);
   if(kind==='p')mk({title:'Esercizi: '+n,type:'Studio',kind:'practice',topic:p.id,date:o.date,dur:pages?Math.max(30,pages*4):60});
   else{mk({title:'Schema: '+n,type:'Studio',kind:'schema',topic:p.id,date:o.date,dur:db.set.scheme});mk({title:'Studio: '+n,type:'Studio',kind:'study',topic:p.id,date:o.date,dur:pages?Math.max(20,pages*5):45})}
   mk({title:'Ripasso: '+n,type:'Ripasso',kind:'review',topic:p.id,date:o.date,dur:20})});
- db.tests.push(test);commit();toast('Verifica creata e pianificata')},'Crea');
+ db.tests.push(test);commit();toast(type+' creata e pianificata')},'Crea')};
 A.stdel=id=>ask('Eliminare verifica e attività collegate?',()=>{db.tasks=db.tasks.filter(t=>t.test!==id);db.tests=db.tests.filter(t=>t.id!==id);commit()});
 const topic=(i,j)=>db.tests.find(t=>t.id===i).topics.find(p=>p.id===j);
 A.tsc=(i,j)=>{const p=topic(i,j),s=['Non fatto','Completato','In revisione'];p.schema=s[(s.indexOf(p.schema)+1)%3];commit()};
@@ -709,7 +730,7 @@ function render(enter){document.documentElement.dataset.th=db.set.theme;document
  const act=cur==='wallet'||cur==='wstats'?'fin':cur;$('#sb').querySelectorAll('.nv[data-i]').forEach(b=>b.classList.toggle('on',b.dataset.i===act));
  const th=`<button class="cb" id="mb" data-a="mb" aria-label="Apri il menu">${ic('menu')}</button><span class="grow"></span><small class="dk m">${new Date().toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</small><div class="srw" id="srw"><button class="cb" data-a="sopen" aria-label="Cerca">${ic('search')}</button><input id="gs" autocomplete="off" placeholder="Cerca sezioni, conti, operazioni..." aria-label="Cerca"><div class="sgl" id="gsl" hidden></div></div><button class="cb" data-a="tnew" aria-label="Nuova attività">${ic('plus')}</button><button class="cb" data-a="nav" data-i="fin" aria-label="Finanze">${ic('fin')}</button><button class="cb bell" data-a="nav" data-i="home" aria-label="Avvisi">${ic('bell')}${al?'<i class="dot"></i>':''}</button><span data-a="nav" data-i="profile" style="cursor:pointer">${av('sm')}</span>`;
  if(th!==TOPH){$('#top').className='';$('#top').innerHTML=th;TOPH=th}
- $('#v').className=enter?'in':'';$('#v').style.setProperty('--sa',cur==='wallet'||cur==='wstats'?(WS==='cash'?'#2be3a0':'#5b7cff'):(SA[cur]||'#5b7cff'));let vh;try{vh=(HEAD[cur]?PH(HEAD[cur][0],HEAD[cur][1],HEAD[cur][2],HEAD[cur][3]?HEAD[cur][3]():''):'')+V[cur]()}catch(e){console.error(e);vh=`<section class="c"><h3>Qualcosa è andato storto</h3><p class="m">${esc(e.message)}</p><button class="bt" data-a="nav" data-i="home">Torna alla Home</button></section>`}$('#v').innerHTML=vh;
+ $('#v').className=enter?'in':'';$('#v').style.setProperty('--sa',cur==='wallet'||cur==='wstats'?(WS==='cash'?'#2be3a0':'#5b7cff'):(SA[cur]||'#5b7cff'));let vh;try{vh=(HEAD[cur]?PH(HEAD[cur][0],HEAD[cur][1],HEAD[cur][2],HEAD[cur][3]?HEAD[cur][3]():''):'')+V[cur]()}catch(e){console.error(e);vh=`<section class="c"><h3>Qualcosa è andato storto</h3><p class="m">${esc(e.message)}</p><button class="bt" data-a="nav" data-i="home">Torna alla Home</button></section>`}if(!STORE_OK)vh='<section class="c" style="border-color:var(--r)"><h3>Salvataggio non disponibile</h3><p class="m">Il browser sta bloccando la memoria locale (navigazione privata?). I dati non verranno ricordati: esporta spesso un backup da Impostazioni.</p></section>'+vh;$('#v').innerHTML=vh;
  document.querySelectorAll('.cu').forEach(el=>{const to=+el.dataset.n,t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/800),e=1-Math.pow(1-p,3);el.textContent=eur(R(to*e));if(p<1)requestAnimationFrame(f)})(t0)});
  document.querySelectorAll('.ci').forEach(el=>{const to=+el.dataset.n,t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/900);el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0)});
  tickTimer()}
@@ -720,7 +741,9 @@ A.xnew=()=>form('Eccezione giornaliera',[{k:'date',l:'Giorno',t:'date',v:today()
 A.sdel=id=>ask('Eliminare questo orario?',()=>{db.prof=db.prof.filter(p=>p.id!==id);commit()});
 A.xdel=id=>{db.exc=db.exc.filter(x=>x.id!==id);commit()};
 A.pk=k=>{const[t,o,v,cb]=PKS[k]();sheet(t,o,v,x=>{cb(x);render()})};A.sfil=k=>{SF=k;render()};A.sday=()=>form('Filtra per giorno',[{k:'d',l:'Giorno',t:'date',v:SD||today()}],o=>{if(!o.d)return'Scegli un giorno';SD=o.d;SF='day';render()},'Applica');A.wal=w=>{WS=w;cur='wallet';render(true);scrollTo(0,0)};A.wst=w=>{WS=w;cur='wstats';render(true);scrollTo(0,0)};A.clq=()=>{F.q='';render()};A.wper=p=>{WP=p;render()};A.wf=()=>{const o=['','in','out'];HX.wf=o[(o.indexOf(HX.wf||'')+1)%3];render()};A.sc=()=>{const e=document.getElementById('arch');e&&e.scrollIntoView({behavior:'smooth'})};
-let LY=0;function sbOpen(o){const b=document.body;if(b.classList.contains('op')===o)return;b.classList.toggle('op',o);if(o){LY=scrollY||0;b.style.position='fixed';b.style.top=-LY+'px';b.style.width='100%'}else{b.style.position='';b.style.top='';b.style.width='';scrollTo(0,LY)}}
+let LK=false,LY=0;function syncLock(){const on=!!document.querySelector('.ov')||document.body.classList.contains('op');if(on===LK)return;LK=on;const b=document.body;if(on){LY=scrollY||0;b.style.position='fixed';b.style.top=-LY+'px';b.style.width='100%'}else{b.style.position='';b.style.top='';b.style.width='';scrollTo(0,LY)}}
+function sbOpen(o){document.body.classList.toggle('op',o)}
+try{new MutationObserver(syncLock).observe(document.body,{childList:true,attributes:true,attributeFilter:['class']})}catch(e){}
 A.min=()=>{if(innerWidth>800){db.set.sbc=true;save();document.body.classList.add('sbc')}else sbOpen(false)};
 A.mb=()=>{if(innerWidth>800){db.set.sbc=false;save();document.body.classList.remove('sbc')}else sbOpen(true)};
 A.sopen=()=>{const w=$('#srw'),o=!w.classList.contains('open');w.classList.toggle('open',o);$('#top').classList.toggle('so',o);if(o)setTimeout(()=>$('#gs').focus(),250);else $('#gsl').hidden=true};
