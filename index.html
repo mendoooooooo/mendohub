@@ -336,7 +336,7 @@ button.gcd{border:0;padding:0;font:inherit;cursor:pointer}.gcd.dim{opacity:.35}
 <script>
 "use strict";
 /* ===== CONFIG & DATI ===== */
-const K='mendohub_v1',VER='2026-10-20 · build 20';
+const K='mendohub_v1',VER='2026-10-20 · build 21';
 const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
 const CATS=['Cibo','Bere','Fumo','Uscite e divertimento','Vestiti e shopping','Trasporti','Palestra e sport','Abbonamenti e servizi','Regali','Scuola','Altro'];
 const def=()=>({v:1,profile:{},set:{theme:'dark',anim:true,reserve:20,gym:3,gymMin:70,resOn:false,scheme:60,psec:['info','stats','rec','abit','ach','goals','hist'],phide:[]},init:null,tx:[],cats:CATS.map(n=>({id:uid(),name:n,budget:0,w:1})),debts:[],tasks:[],tests:[],goals:[],sess:[],timer:null,xp:0,ach:{},read:{},backups:0,achv:3,prof:[],exc:[],grades:[],workouts:[]});
@@ -345,7 +345,7 @@ try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}ca
 let db=load(),cur='home',F={type:'',cat:'',w:'',m:''};
 function rd(){try{const v=localStorage.getItem(K);if(v)return v}catch(e){}try{return JSON.parse(window.name).mh||null}catch(e){return null}}
 function load(){let r=null;try{r=rd();const d=JSON.parse(r);if(d&&d.v===1){const x=Object.assign(def(),d);x.set=Object.assign(def().set,d.set||{});return mig(x)}}catch(e){console.error(e);try{if(r)localStorage.setItem(K+'_corrupt',r)}catch(e2){}}return def()}
-function mig(x){if(x.gv!==1){x.ach=x.ach||{};['gkg','gone'].forEach(k=>Object.keys(x.ach).forEach(id=>{if(id.startsWith(k)&&/^\d+$/.test(id.slice(k.length))){x.xp=Math.max(0,(x.xp||0)-(10+(+id.slice(k.length))*10));delete x.ach[id]}}));x.gv=1}if(x.pv!==2){(x.tasks||[]).forEach(t=>{if(!t.fixed&&t.status==='Pianificata')t.planDay=null});x.pv=2}if(x.achv!==3){x.ach={};x.xp=x.tasks.filter(t=>t.xpd).length*5;x.achv=3}return x}
+function mig(x){if(x.gk!==1){x.ach=x.ach||{};Object.keys(x.ach).forEach(id=>{if(id.startsWith('gkg')&&/^\d+$/.test(id.slice(3))){x.xp=Math.max(0,(x.xp||0)-(10+(+id.slice(3))*10));delete x.ach[id]}});x.gk=1}if(x.gv!==1){x.ach=x.ach||{};['gkg','gone'].forEach(k=>Object.keys(x.ach).forEach(id=>{if(id.startsWith(k)&&/^\d+$/.test(id.slice(k.length))){x.xp=Math.max(0,(x.xp||0)-(10+(+id.slice(k.length))*10));delete x.ach[id]}}));x.gv=1}if(x.pv!==2){(x.tasks||[]).forEach(t=>{if(!t.fixed&&t.status==='Pianificata')t.planDay=null});x.pv=2}if(x.achv!==3){x.ach={};x.xp=x.tasks.filter(t=>t.xpd).length*5;x.achv=3}return x}
 function save(){const j=JSON.stringify(db);try{localStorage.setItem(K,j)}catch(e){try{window.name=JSON.stringify({mh:j})}catch(e2){toast('Memoria piena: esporta un backup')}}}
 /* ===== UTILITÀ ===== */
 const $=s=>document.querySelector(s),R=n=>Math.round(n*100)/100;
@@ -478,7 +478,7 @@ AK('gsc','Voti','Scritti da 6 in su','scritti',"1:Penna ferma|3:Tre scritti|5:Ma
 Object.assign(DESC,{gcount:'Registra voti nella sezione Voti.',gsuff:'Prendi voti pari o superiori a 6.',g8:'Prendi voti pari o superiori a 8.',g9:'Prendi voti pari o superiori a 9.',g10:'Prendi un 10 pieno.',gsubs:'Inserisci voti in materie diverse.',gavg:'Raggiungi questa media generale (servono almeno 5 voti).',gsm:'Porta la media di una materia a 6 o più (almeno 2 voti per materia).',gstreak:'Ottieni sufficienze consecutive (in ordine di data) senza insufficienze in mezzo.',gor:'Prendi voti orali pari o superiori a 6.',gsc:'Prendi voti scritti pari o superiori a 6.'});
 ACH.push(
 AK('gtime','Palestra','Tempo in palestra','ore',"1:Prima ora di ferro|5:Cinque ore sotto i pesi|10:Dieci ore|25:Venticinque ore|50:Mezzo centinaio|100:Cento ore di ghisa|200:Abitante della palestra"),
-AK('gkg','Palestra','Peso sollevato','kg',"25000:Primo carico|100000:Cento tonnellate|250000:Un quarto di milione|500000:Mezzo milione|1000000:Un milione di chili|2500000:Due milioni e mezzo|5000000:Cinque milioni, leggenda"),
+AK('gkg','Palestra','Peso sollevato','kg',"25000:Primo carico|75000:Settantacinque tonnellate|150000:Centocinquanta tonnellate|300000:Trecento tonnellate|450000:Quasi mezzo milione|600000:Seicento tonnellate|750000:Tre quarti di milione, leggenda"),
 AK('gone','Palestra','Allenamento più pesante','kg in una sessione',"5000:Cinque tonnellate|6500:Oltre la media|8000:Otto tonnellate|10000:Dieci tonnellate in una seduta|12500:Quasi al limite|15000:Quindici tonnellate, record"),
 AK('glong','Palestra','Allenamento più lungo','minuti',"45:Tre quarti d'ora|60:Ora piena|90:Sessione lunga|120:Maratoneta dei pesi"),
 AK('gmus','Palestra','Muscoli allenati','gruppi diversi',"3:Tre gruppi|5:Cinque gruppi|7:Sette gruppi|9:Quasi tutto il corpo|11:Corpo completo"),
